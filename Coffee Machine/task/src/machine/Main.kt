@@ -18,9 +18,14 @@ class CoffeeShop {
 
     fun beginWork() {
         configureCoffeeMachine()
-        printCoffeeMachineState()
-        makeAction()
-        printCoffeeMachineState()
+        while (true) {
+            print("Write action (buy, fill, take, remaining, exit): ")
+            val action = scanner.next()!!
+            if (action == "exit") {
+                break
+            }
+            makeAction(action)
+        }
     }
 
     private fun configureCoffeeMachine() {
@@ -31,27 +36,28 @@ class CoffeeShop {
         coffeeMachine.printState()
     }
 
-    private fun makeAction() {
+    private fun makeAction(action: String) {
         println()
-        print("Write action (buy, fill, take): ")
-        when (scanner.next()) {
+        when (action) {
             "buy" -> buyACupOfCoffee()
-            "fill" -> fillCoffeeMachineResources()
+            "fill" -> fillCoffeeMachineWithResources()
             "take" -> takeCashFromCoffeeMachine()
+            "remaining" -> printCoffeeMachineState()
         }
         println()
     }
 
     private fun buyACupOfCoffee() {
-        print("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino: ")
+        print("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino, back - to main menu: ")
         when (scanner.next()) {
             "1" -> coffeeMachine.buy(CoffeeType.ESPRESSO)
             "2" -> coffeeMachine.buy(CoffeeType.LATTE)
             "3" -> coffeeMachine.buy(CoffeeType.CAPPUCCINO)
+            "back" -> return
         }
     }
 
-    private fun fillCoffeeMachineResources() {
+    private fun fillCoffeeMachineWithResources() {
         print("Write how many ml of water do you want to add: ")
         val water = scanner.nextInt()
         print("Write how many ml of milk do you want to add: ")
@@ -131,11 +137,20 @@ class CoffeeMachine() {
     }
 
     fun buy(coffeeType: CoffeeType) {
-        waterCount -= coffeeType.waterPerCup
-        milkCount -= coffeeType.milkPerCup
-        beansCount -= coffeeType.beansPerCup
-        cash += coffeeType.price
-        --disposableCups
+        when {
+            waterCount < coffeeType.waterPerCup -> println("Sorry, not enough water!")
+            milkCount < coffeeType.milkPerCup -> println("Sorry, not enough milk!")
+            beansCount < coffeeType.beansPerCup -> println("Sorry, not enough coffee beans!")
+            disposableCups == 0 -> println("Sorry, not enough disposable cups!")
+            else -> {
+                println("I have enough resources, making you a coffee!")
+                waterCount -= coffeeType.waterPerCup
+                milkCount -= coffeeType.milkPerCup
+                beansCount -= coffeeType.beansPerCup
+                cash += coffeeType.price
+                --disposableCups
+            }
+        }
     }
 
     fun getCash(): Int {
