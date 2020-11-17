@@ -180,9 +180,39 @@ files:
     }
   learner_created: false
 feedback_link: https://hyperskill.org/projects/67/stages/362/implement#comment
-status: Solved
+status: Failed
 feedback:
-  message: Congratulations! Continue on <a href="https://hyperskill.org/projects/67/stages/362/implement">JetBrains
-    Academy</a>
-  time: Tue, 17 Nov 2020 19:41:45 UTC
-record: -1
+  message: |-
+    Wrong answer in test #1
+
+    Your output:
+    400 of water
+    540 of milk
+    120 of coffee beans
+    9 of disposable cups
+    550 of money
+    Right output:
+    Yes, I can make that amount of coffee
+
+    Please find below the output of your program during this failed test.
+    Note that the &#39;&gt;&#39; character indicates the beginning of the input line.
+
+    ---
+
+    The coffee machine has:
+    400 of water
+    540 of milk
+    120 of coffee beans
+    9 of disposable cups
+    550 of money
+
+    Write action (buy, fill, take): &gt; 300
+
+    The coffee machine has:
+    400 of water
+    540 of milk
+    120 of coffee beans
+    9 of disposable cups
+    550 of money
+  time: Tue, 17 Nov 2020 20:58:26 UTC
+record: 3

@@ -3,54 +3,118 @@ package machine
 import java.util.*
 
 fun main() {
-    val scanner = Scanner(System.`in`)
-    println("Write how many ml of water the coffee machine has: ")
-    val waterCount = scanner.nextInt()
-    println("Write how many ml of milk the coffee machine has: ")
-    val milkCount = scanner.nextInt()
-    println("Write how many grams of coffee beans the coffee machine has: ")
-    val beansCount = scanner.nextInt()
+    CoffeeShop().beginWork()
+}
 
-    println("Write how many cups of coffee you will need: ")
-    val cupsCount = scanner.nextInt()
+enum class CoffeeType(val waterPerCup: Int, val milkPerCup: Int, val beansPerCup: Int, val price: Int) {
+    ESPRESSO(250, 0, 16, 4),
+    LATTE(350, 75, 20, 7),
+    CAPPUCCINO(200, 100, 12, 6)
+}
 
-    val coffeeMachine = CoffeeMachine()
-    coffeeMachine.setResources(waterCount, milkCount, beansCount)
-    coffeeMachine.checkIfAvailableNumberOfCups(cupsCount)
+class CoffeeShop {
+    private val scanner = Scanner(System.`in`)
+    private val coffeeMachine = CoffeeMachine()
+
+    fun beginWork() {
+        configureCoffeeMachine()
+        printCoffeeMachineState()
+        makeAction()
+        printCoffeeMachineState()
+    }
+
+    private fun configureCoffeeMachine() {
+        coffeeMachine.setResources(400, 540, 120, 550, 9)
+    }
+
+    private fun printCoffeeMachineState() {
+        coffeeMachine.printState()
+    }
+
+    private fun makeAction() {
+        println()
+        print("Write action (buy, fill, take): ")
+        when (scanner.next()) {
+            "buy" -> buyACupOfCoffee()
+            "fill" -> fillCoffeeMachineResources()
+            "take" -> takeCashFromCoffeeMachine()
+        }
+        println()
+    }
+
+    private fun buyACupOfCoffee() {
+        print("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino: ")
+        when (scanner.next()) {
+            "1" -> coffeeMachine.buy(CoffeeType.ESPRESSO)
+            "2" -> coffeeMachine.buy(CoffeeType.LATTE)
+            "3" -> coffeeMachine.buy(CoffeeType.CAPPUCCINO)
+        }
+    }
+
+    private fun fillCoffeeMachineResources() {
+        print("Write how many ml of water do you want to add: ")
+        val water = scanner.nextInt()
+        print("Write how many ml of milk do you want to add: ")
+        val milk = scanner.nextInt()
+        print("Write how many grams of coffee beans do you want to add: ")
+        val beans = scanner.nextInt()
+        print("Write how many disposable cups of coffee do you want to add: ")
+        val cups = scanner.nextInt()
+
+        coffeeMachine.addResources(water, milk, beans, cups)
+    }
+
+    private fun takeCashFromCoffeeMachine() {
+        println("I gave you \$${coffeeMachine.getCash()}")
+    }
 }
 
 class CoffeeMachine() {
     private var waterCount: Int = 0
     private var milkCount: Int = 0
     private var beansCount: Int = 0
+    private var cash: Int = 0
+    private var disposableCups: Int = 0
 
-    companion object {
-        private const val WATER_PER_CUP = 200
-        private const val MILK_PER_CUP = 50
-        private const val BEANS_PER_CUP = 15
+    fun setResources(_waterCount: Int, _milkCount: Int, _beansCount: Int, _cash: Int, _disposableCups: Int) {
+        waterCount = _waterCount
+        milkCount = _milkCount
+        beansCount = _beansCount
+        cash = _cash
+        disposableCups = _disposableCups
     }
 
-    fun setResources(water: Int, milk: Int, beans: Int) {
-        waterCount = water
-        milkCount = milk
-        beansCount = beans
+    fun addResources(_waterCount: Int, _milkCount: Int, _beansCount: Int, _disposableCups: Int) {
+        waterCount += _waterCount
+        milkCount += _milkCount
+        beansCount += _beansCount
+        disposableCups += _disposableCups
     }
 
-    fun calcResourcesNeededForNumberForCups(countOfCups: Int) {
+    fun calcResourcesNeededForCups(countOfCups: Int, coffeeType: CoffeeType) {
         println("For $countOfCups of coffee you will need:")
-        println("${countOfCups * WATER_PER_CUP} ml of water")
-        println("${countOfCups * MILK_PER_CUP} ml of milk")
-        println("${countOfCups * BEANS_PER_CUP} g of coffee beans")
+        println("${countOfCups * coffeeType.waterPerCup} ml of water")
+        println("${countOfCups * coffeeType.milkPerCup} ml of milk")
+        println("${countOfCups * coffeeType.beansPerCup} g of coffee beans")
     }
 
-    fun checkIfAvailableNumberOfCups(numberOfCups: Int) {
-        val maxNumberOfCups = getMaximumNumberOfCups()
+    fun printState() {
+        println("The coffee machine has:")
+        println("$waterCount of water")
+        println("$milkCount of milk")
+        println("$beansCount of coffee beans")
+        println("$disposableCups of disposable cups")
+        println("$cash of money")
+    }
+
+    fun checkIfAvailableResourcesForNumberOfCups(numberOfCups: Int, coffeeType: CoffeeType) {
+        val maxNumberOfCups = getMaximumNumberOfCups(coffeeType)
         when {
             maxNumberOfCups == numberOfCups -> {
                 println("Yes, I can make that amount of coffee")
             }
             maxNumberOfCups > numberOfCups -> {
-                println("Yes, I can make that amount of coffee (and even ${maxNumberOfCups - numberOfCups} more than that)")
+                println("Yes, I can make that amount of coffee (and even $maxNumberOfCups more than that)")
             }
             else -> {
                 println("No, I can make only $maxNumberOfCups cups of coffee")
@@ -58,17 +122,25 @@ class CoffeeMachine() {
         }
     }
 
-    fun getMaximumNumberOfCups(): Int {
-        val waterPortions = waterCount / WATER_PER_CUP
-        val milkPortions = milkCount / MILK_PER_CUP
-        val beansPortions = beansCount / BEANS_PER_CUP
+    fun getMaximumNumberOfCups(coffeeType: CoffeeType): Int {
+        val waterPortions = if (coffeeType.waterPerCup == 0) Int.MAX_VALUE else waterCount / coffeeType.waterPerCup
+        val milkPortions = if (coffeeType.milkPerCup == 0) Int.MAX_VALUE else milkCount / coffeeType.milkPerCup
+        val beansPortions = if (coffeeType.beansPerCup == 0) Int.MAX_VALUE else beansCount / coffeeType.beansPerCup
 
-        return if (waterPortions < beansPortions && waterPortions < milkPortions) {
-            waterPortions
-        } else if (beansPortions < milkPortions) {
-            beansPortions
-        } else {
-            milkPortions
-        }
+        return listOf(waterPortions, milkPortions, beansPortions, disposableCups).minOrNull() ?: 0
+    }
+
+    fun buy(coffeeType: CoffeeType) {
+        waterCount -= coffeeType.waterPerCup
+        milkCount -= coffeeType.milkPerCup
+        beansCount -= coffeeType.beansPerCup
+        cash += coffeeType.price
+        --disposableCups
+    }
+
+    fun getCash(): Int {
+        val result = cash
+        cash = 0
+        return result
     }
 }
